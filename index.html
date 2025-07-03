@@ -1,20 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gorakhpur Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - Gorakhpur Glass and Arts</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
     h1 { color: #333; }
-    .card { background: #fff; padding: 20px; margin-top: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    form, .product-card { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+    button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .product-card { margin-top: 10px; }
+    .product-card img { max-width: 100px; }
+    .actions button { margin-right: 10px; }
   </style>
 </head>
 <body>
   <h1>Admin Dashboard - Gorakhpur Glass and Arts</h1>
-  <div class="card">
-    <p>Welcome! Here you can manage your products.</p>
-  </div>
+
+  <form id="productForm">
+    <h2>Add / Edit Product</h2>
+    <input type="hidden" id="productId" />
+    <input type="text" id="productName" placeholder="Product Name" required />
+    <input type="text" id="productImage" placeholder="Image URL" required />
+    <input type="text" id="productCategory" placeholder="Category" required />
+    <textarea id="productDescription" placeholder="Description"></textarea>
+    <input type="number" id="productPrice" placeholder="Price (optional)" />
+    <button type="submit">Save Product</button>
+  </form>
+
+  <div id="productList"></div>
+
+  <script>
+    let products = JSON.parse(localStorage.getItem('products') || '[]');
+
+    function renderProducts() {
+      const list = document.getElementById('productList');
+      list.innerHTML = '';
+      products.forEach((p, index) => {
+        const div = document.createElement('div');
+        div.className = 'product-card';
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <img src="${p.image}" alt="${p.name}" />
+          <p><strong>Category:</strong> ${p.category}</p>
+          <p><strong>Description:</strong> ${p.description}</p>
+          <p><strong>Price:</strong> ${p.price ? '₹' + p.price : 'Not set'}</p>
+          <div class="actions">
+            <button onclick="editProduct(${index})">Edit</button>
+            <button onclick="deleteProduct(${index})" style="background:#dc3545">Delete</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function editProduct(index) {
+      const p = products[index];
+      document.getElementById('productId').value = index;
+      document.getElementById('productName').value = p.name;
+      document.getElementById('productImage').value = p.image;
+      document.getElementById('productCategory').value = p.category;
+      document.getElementById('productDescription').value = p.description;
+      document.getElementById('productPrice').value = p.price;
+    }
+
+    function deleteProduct(index) {
+      if (confirm('Are you sure to delete this product?')) {
+        products.splice(index, 1);
+        localStorage.setItem('products', JSON.stringify(products));
+        renderProducts();
+      }
+    }
+
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const id = document.getElementById('productId').value;
+      const product = {
+        name: document.getElementById('productName').value,
+        image: document.getElementById('productImage').value,
+        category: document.getElementById('productCategory').value,
+        description: document.getElementById('productDescription').value,
+        price: document.getElementById('productPrice').value,
+      };
+      if (id) {
+        products[id] = product;
+      } else {
+        products.push(product);
+      }
+      localStorage.setItem('products', JSON.stringify(products));
+      this.reset();
+      renderProducts();
+    });
+
+    renderProducts();
+  </script>
 </body>
 </html>
